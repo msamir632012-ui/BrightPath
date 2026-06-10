@@ -64,7 +64,7 @@ function initializeApp() {
                 </div>
             </div>
             <div id="diaryEditor" class="editor-area" contenteditable="true" data-placeholder="Write your diary entry here..."></div>
-            <button onclick="saveDiary()" class="save-btn">💾 Save Diary Entry</button>
+            <button onclick="saveDiary()" style="margin-top: 10px; padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">💾 Save Diary Entry</button>
         </div>
 
         <!-- NOTES SECTION -->
@@ -113,7 +113,7 @@ function initializeApp() {
                 </div>
             </div>
             <div id="notesEditor" class="editor-area" contenteditable="true" data-placeholder="Write your notes here..."></div>
-            <button onclick="saveNotes()" class="save-btn">💾 Save Notes</button>
+            <button onclick="saveNotes()" style="margin-top: 10px; padding: 12px 20px; background: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">💾 Save Notes</button>
         </div>
 
         <!-- SKETCHES SECTION -->
@@ -122,16 +122,11 @@ function initializeApp() {
             <div class="sketch-container">
                 <div class="sketch-toolbar">
                     <div class="sketch-tool-group">
-                        <button class="sketch-tool-btn active" onclick="setSketchTool('pencil')" title="Pencil">✏️ Pencil</button>
-                        <button class="sketch-tool-btn" onclick="setSketchTool('pen')" title="Pen">🖊️ Pen</button>
-                        <button class="sketch-tool-btn" onclick="setSketchTool('brush')" title="Brush">🖌️ Brush</button>
-                        <button class="sketch-tool-btn" onclick="setSketchTool('eraser')" title="Eraser">🧹 Eraser</button>
-                        <button class="sketch-tool-btn" onclick="setSketchTool('highlighter')" title="Highlighter">🔆 Highlighter</button>
-                    </div>
-                    <div class="sketch-tool-group">
-                        <button class="sketch-tool-btn" onclick="setSketchTool('line')" title="Line">📏 Line</button>
-                        <button class="sketch-tool-btn" onclick="setSketchTool('circle')" title="Circle">⭕ Circle</button>
-                        <button class="sketch-tool-btn" onclick="setSketchTool('rectangle')" title="Rectangle">▭ Rectangle</button>
+                        <button class="sketch-tool-btn active" onclick="setSketchTool('pencil', event)" title="Pencil">✏️ Pencil</button>
+                        <button class="sketch-tool-btn" onclick="setSketchTool('pen', event)" title="Pen">🖊️ Pen</button>
+                        <button class="sketch-tool-btn" onclick="setSketchTool('brush', event)" title="Brush">🖌️ Brush</button>
+                        <button class="sketch-tool-btn" onclick="setSketchTool('eraser', event)" title="Eraser">🧹 Eraser</button>
+                        <button class="sketch-tool-btn" onclick="setSketchTool('highlighter', event)" title="Highlighter">🔆 Highlighter</button>
                     </div>
                     <div class="sketch-tool-group">
                         <label>Color:</label>
@@ -187,43 +182,25 @@ function initializeApp() {
 }
 
 function switchSection(sectionId) {
-    document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-    });
-
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-
+    document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
     document.getElementById(sectionId).classList.add('active');
     event.target.classList.add('active');
-
-    if (sectionId === 'sketches') {
-        setTimeout(() => {
-            initSketchCanvas();
-        }, 100);
-    }
+    
+    if (sectionId === 'sketches') setTimeout(() => initSketchCanvas(), 100);
 }
 
 function applyFormat(format, editorId = 'diaryEditor') {
     const editor = document.getElementById(editorId);
-    
-    if (format === 'bold') {
-        document.execCommand('bold', false, null);
-    } else if (format === 'italic') {
-        document.execCommand('italic', false, null);
-    } else if (format === 'underline') {
-        document.execCommand('underline', false, null);
-    } else if (format === 'highlight') {
-        const highlightColorId = editorId === 'diaryEditor' ? 'highlightColor' : 'notesHighlightColor';
-        const highlightColor = document.getElementById(highlightColorId).value;
-        document.execCommand('backColor', false, highlightColor);
-    } else if (format === 'undo') {
-        document.execCommand('undo', false, null);
-    } else if (format === 'redo') {
-        document.execCommand('redo', false, null);
+    if (format === 'bold') document.execCommand('bold', false, null);
+    else if (format === 'italic') document.execCommand('italic', false, null);
+    else if (format === 'underline') document.execCommand('underline', false, null);
+    else if (format === 'highlight') {
+        const colorId = editorId === 'diaryEditor' ? 'highlightColor' : 'notesHighlightColor';
+        document.execCommand('backColor', false, document.getElementById(colorId).value);
     }
-    
+    else if (format === 'undo') document.execCommand('undo', false, null);
+    else if (format === 'redo') document.execCommand('redo', false, null);
     editor.focus();
 }
 
@@ -244,121 +221,78 @@ function changeFontColor(color, editorId = 'diaryEditor') {
 
 function saveDiary() {
     const content = document.getElementById('diaryEditor').innerHTML;
-    if (!content.trim()) {
-        alert('Please write something first!');
-        return;
-    }
-    const timestamp = new Date().toLocaleString();
+    if (!content.trim()) { alert('Please write something first!'); return; }
     let diaries = JSON.parse(localStorage.getItem('bp_diaries') || '[]');
-    diaries.push({
-        id: Date.now(),
-        content: content,
-        timestamp: timestamp
-    });
+    diaries.push({ id: Date.now(), content, timestamp: new Date().toLocaleString() });
     localStorage.setItem('bp_diaries', JSON.stringify(diaries));
-    alert('✅ Diary entry saved successfully!');
+    alert('✅ Diary entry saved!');
     document.getElementById('diaryEditor').innerHTML = '';
 }
 
 function clearDiary() {
-    if (confirm('Are you sure you want to clear this entry?')) {
-        document.getElementById('diaryEditor').innerHTML = '';
-    }
+    if (confirm('Clear diary entry?')) document.getElementById('diaryEditor').innerHTML = '';
 }
 
 function saveNotes() {
     const content = document.getElementById('notesEditor').innerHTML;
-    if (!content.trim()) {
-        alert('Please write something first!');
-        return;
-    }
-    const timestamp = new Date().toLocaleString();
+    if (!content.trim()) { alert('Please write something first!'); return; }
     let notes = JSON.parse(localStorage.getItem('bp_notes') || '[]');
-    notes.push({
-        id: Date.now(),
-        content: content,
-        timestamp: timestamp
-    });
+    notes.push({ id: Date.now(), content, timestamp: new Date().toLocaleString() });
     localStorage.setItem('bp_notes', JSON.stringify(notes));
-    alert('✅ Note saved successfully!');
+    alert('✅ Note saved!');
     document.getElementById('notesEditor').innerHTML = '';
 }
 
 function clearNotes() {
-    if (confirm('Are you sure you want to clear this note?')) {
-        document.getElementById('notesEditor').innerHTML = '';
-    }
+    if (confirm('Clear note?')) document.getElementById('notesEditor').innerHTML = '';
 }
 
 function addTask() {
-    const taskInput = document.getElementById('taskInput');
-    const taskText = taskInput.value.trim();
-
-    if (!taskText) {
-        alert('Please enter a task');
-        return;
-    }
-
+    const input = document.getElementById('taskInput');
+    const text = input.value.trim();
+    if (!text) { alert('Please enter a task'); return; }
     let tasks = JSON.parse(localStorage.getItem('bp_tasks') || '[]');
-    tasks.push({
-        id: Date.now(),
-        text: taskText,
-        completed: false
-    });
-
+    tasks.push({ id: Date.now(), text, completed: false });
     localStorage.setItem('bp_tasks', JSON.stringify(tasks));
-    taskInput.value = '';
+    input.value = '';
     renderTasks();
 }
 
 function renderTasks() {
     let tasks = JSON.parse(localStorage.getItem('bp_tasks') || '[]');
-    const tasksList = document.getElementById('tasksList');
-    
-    if (tasks.length === 0) {
-        tasksList.innerHTML = '<li style="padding: 20px; text-align: center; color: #999;">No tasks yet. Add one to get started!</li>';
-        return;
-    }
-
-    tasksList.innerHTML = tasks.map(task => `
-        <li class="planner-item ${task.completed ? 'completed' : ''}">
-            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${task.id})">
-            <span class="task-text">${task.text}</span>
+    const list = document.getElementById('tasksList');
+    if (tasks.length === 0) { list.innerHTML = '<li style="padding:20px;text-align:center;color:#999;">No tasks yet. Add one!</li>'; return; }
+    list.innerHTML = tasks.map(t => `
+        <li class="planner-item ${t.completed ? 'completed' : ''}">
+            <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id})">
+            <span class="task-text">${t.text}</span>
             <div class="task-actions">
-                <button onclick="editTask(${task.id})">✏️ Edit</button>
-                <button class="delete" onclick="deleteTask(${task.id})">🗑️ Delete</button>
+                <button onclick="editTask(${t.id})">✏️ Edit</button>
+                <button class="delete" onclick="deleteTask(${t.id})">🗑️ Delete</button>
             </div>
         </li>
     `).join('');
 }
 
-function toggleTask(taskId) {
+function toggleTask(id) {
     let tasks = JSON.parse(localStorage.getItem('bp_tasks') || '[]');
-    const task = tasks.find(t => t.id === taskId);
-    if (task) {
-        task.completed = !task.completed;
-        localStorage.setItem('bp_tasks', JSON.stringify(tasks));
-        renderTasks();
-    }
+    const task = tasks.find(t => t.id === id);
+    if (task) { task.completed = !task.completed; localStorage.setItem('bp_tasks', JSON.stringify(tasks)); renderTasks(); }
 }
 
-function editTask(taskId) {
+function editTask(id) {
     let tasks = JSON.parse(localStorage.getItem('bp_tasks') || '[]');
-    const task = tasks.find(t => t.id === taskId);
+    const task = tasks.find(t => t.id === id);
     if (task) {
         const newText = prompt('Edit task:', task.text);
-        if (newText !== null && newText.trim()) {
-            task.text = newText.trim();
-            localStorage.setItem('bp_tasks', JSON.stringify(tasks));
-            renderTasks();
-        }
+        if (newText && newText.trim()) { task.text = newText.trim(); localStorage.setItem('bp_tasks', JSON.stringify(tasks)); renderTasks(); }
     }
 }
 
-function deleteTask(taskId) {
-    if (confirm('Are you sure you want to delete this task?')) {
+function deleteTask(id) {
+    if (confirm('Delete task?')) {
         let tasks = JSON.parse(localStorage.getItem('bp_tasks') || '[]');
-        tasks = tasks.filter(t => t.id !== taskId);
+        tasks = tasks.filter(t => t.id !== id);
         localStorage.setItem('bp_tasks', JSON.stringify(tasks));
         renderTasks();
     }
@@ -367,28 +301,18 @@ function deleteTask(taskId) {
 function addMotivation() {
     const input = document.getElementById('motivationInput');
     const text = input.value.trim();
-
-    if (!text) {
-        alert('Please enter a motivational speech or quote');
-        return;
-    }
-
+    if (!text) { alert('Please enter a quote'); return; }
     let motivations = JSON.parse(localStorage.getItem('bp_motivations') || '[]');
-    motivations.push({
-        id: Date.now(),
-        text: text,
-        custom: true
-    });
-
+    motivations.push({ id: Date.now(), text, custom: true });
     localStorage.setItem('bp_motivations', JSON.stringify(motivations));
     input.value = '';
     renderMotivations();
 }
 
-function deleteMotivation(motivationId) {
-    if (confirm('Are you sure you want to delete this?')) {
+function deleteMotivation(id) {
+    if (confirm('Delete quote?')) {
         let motivations = JSON.parse(localStorage.getItem('bp_motivations') || '[]');
-        motivations = motivations.filter(m => m.id !== motivationId);
+        motivations = motivations.filter(m => m.id !== id);
         localStorage.setItem('bp_motivations', JSON.stringify(motivations));
         renderMotivations();
     }
@@ -396,39 +320,25 @@ function deleteMotivation(motivationId) {
 
 function renderMotivations() {
     let motivations = JSON.parse(localStorage.getItem('bp_motivations') || '[]');
-    
     if (motivations.length === 0) {
         motivations = [
-            { id: 1, text: "Believe in yourself. You are braver than you believe, stronger than you seem, and smarter than you think.", custom: false },
-            { id: 2, text: "Every accomplishment starts with the decision to try. Don't wait for the perfect moment, create it.", custom: false },
-            { id: 3, text: "Your potential is endless. Your only limit is your mind. Dream big and work harder.", custom: false },
-            { id: 4, text: "Success is not final, failure is not fatal. It is the courage to continue that counts.", custom: false },
-            { id: 5, text: "You are capable of amazing things. Take a deep breath and believe in your journey.", custom: false }
+            { id: 1, text: "Believe in yourself. You are braver than you believe.", custom: false },
+            { id: 2, text: "Every accomplishment starts with deciding to try.", custom: false },
+            { id: 3, text: "Your potential is endless. Dream big!", custom: false },
+            { id: 4, text: "Success is not final, failure is not fatal.", custom: false },
+            { id: 5, text: "You are capable of amazing things.", custom: false }
         ];
     }
-
-    const motivationList = document.getElementById('motivationList');
-    motivationList.innerHTML = motivations.map(motivation => `
+    const list = document.getElementById('motivationList');
+    list.innerHTML = motivations.map(m => `
         <div class="motivation-card">
-            <p class="motivation-text">"${motivation.text}"</p>
+            <p class="motivation-text">"${m.text}"</p>
             <div class="motivation-card-actions">
-                <button onclick="deleteMotivation(${motivation.id})" ${!motivation.custom ? 'style="display:none;"' : ''}>🗑️ Delete</button>
-                <button onclick="shareMotivation('${motivation.text.replace(/'/g, "\\'")}')">📤 Share</button>
+                <button onclick="deleteMotivation(${m.id})" style="${!m.custom ? 'display:none;' : ''}}">🗑️ Delete</button>
+                <button>📤 Share</button>
             </div>
         </div>
     `).join('');
-}
-
-function shareMotivation(text) {
-    const shareText = `Check out this motivational quote from BrightPath: "${text}"`;
-    if (navigator.share) {
-        navigator.share({
-            title: 'BrightPath Motivation',
-            text: shareText
-        });
-    } else {
-        alert(shareText);
-    }
 }
 
 function loadAllData() {
@@ -438,6 +348,6 @@ function loadAllData() {
 
 function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW registration failed:', err));
+        navigator.serviceWorker.register('sw.js').catch(() => {});
     }
 }
